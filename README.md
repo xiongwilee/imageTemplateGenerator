@@ -22,6 +22,7 @@ $ brew install ghostscript
 
 下载文件到任意目录，并安装依赖：
 ```shell
+# 仓储有一套中文字体，clone会比较慢，请耐心等候
 $ git clone git://github.com/xiongwilee/imageTemplateGenerator.git
 $ cd imageTemplateGenerator
 $ npm install
