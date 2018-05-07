@@ -1,3 +1,7 @@
+/**
+ * @author xiongwilee
+ */
+
 const gm = require('gm');
 const Template = require('./src/template');
 

@@ -1,3 +1,7 @@
+/**
+ * @author xiongwilee
+ */
+
 const Stream = require('stream');
 const fs = require('fs');
 const path = require('path');
@@ -16,12 +20,14 @@ class Template {
    * 通过模板生成对应的图片
    * 
    * @param  {Object} itemsConf   图片的元素配置
-   * @return {Promise(<Stream>)}    返回Promise, 返回为图片处理流     
+   * @param  {Object} options      产出配置
+   *                  options.type 'Buffer'/'Stream'/'Path'
+   * @return {Promise(<Buffer|Stream>)}    返回Promise
    */
-  gen(itemsConf, config) {
+  gen(itemsConf, options) {
     const conf = Object.assign({
       type: 'Buffer'
-    }, config);
+    }, options);
 
     return this.temps.reduce((accu, curr, index) => {
       const curTemp = this.tempConf[curr];

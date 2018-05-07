@@ -1,3 +1,7 @@
+/**
+ * @author xiongwilee
+ */
+
 const Stream = require('stream');
 const path = require('path');
 const fs = require('fs');
@@ -9,9 +13,9 @@ const request = require('request');
  * 通过未知参数获取图片
  * 
  * @param  {Buffer|Stream|String|Object} 	img 	图片的 Buffer / Stram / 链接 / request请求配置对象
- * @param  {Object} 						config	配置
- *                               			config.type Buffer | Stream | Path
- *                               			config.path 如果config.type为Path,则配置path路径
+ * @param  {Object} 						config	   配置
+ *                              config.type Buffer | Stream | Path
+ *                              config.path 如果config.type为Path,则配置path路径
  * @return {Promise} 
  */
 exports.getImage = function getImage(img, config) {
