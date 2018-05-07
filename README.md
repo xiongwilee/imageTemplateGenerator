@@ -193,8 +193,8 @@ key对应的值，和bgImg一致，包括：`<Buffer|Stream|Url<String>|Path<Str
 
 **options**
 
-- `type`: String， 可以配置为'Buffer'/'Stream'/'Path'
-- `path`: Sting，如果options配置为"Path"，则需要配置写入文件系统的路径
+- `type`: String， 可以配置为'Buffer'/'Stream'/'Path'，默认为'Buffer'
+- `path`: String，如果options配置为"Path"，则需要配置写入文件系统的路径
 
 
 以上为详细配置，综合示例可参考：`example/index.js`。
