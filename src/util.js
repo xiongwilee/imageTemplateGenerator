@@ -130,7 +130,9 @@ exports.getImageByText = function getImageByText(text, config) {
     fontSize: '16',
     fontWeigth: 'Normal',
     width: 4000,
-    height: 4000
+    height: 4000,
+    marginLeft: 0,
+    marginTop: 64
   }, config.style);
 
   const fontFamily = path.resolve(__dirname, `../fonts/SourceHanSerifCN-${conf.fontWeigth}.ttf`);
@@ -144,7 +146,7 @@ exports.getImageByText = function getImageByText(text, config) {
       .stroke(conf.color)
       .font(fontFamily, conf.fontSize)
       // 这里垂直距离有偏移，必须通过fontSize的倍数消除偏移
-      .drawText(0, conf.fontSize * 4, text)
+      .drawText(conf.marginLeft, conf.marginTop, text)
       .trim()
       .toBuffer('PNG', function(err, buffer) {
         // 测试是否读取到了bg

@@ -7,9 +7,10 @@ const Template = require('./src/template');
  * @param  {String|Buffer|Object} bg        背景图片
  * @param  {Object} tempConf  				模板配置
  * @param  {Object} itemsConf 				模板元素配置
+ * @param  {Object} options 				输出配置
  * @return {Promise}
  */
-module.exports = function imageTemplateGenerator(bg, tempConf, itemsConf) {
+module.exports = function imageTemplateGenerator(bg, tempConf, itemsConf, options) {
   if (!bg || !tempConf) return Promise.reject('Illegal Arguments!');
 
   const Temp = Template(bg, tempConf);
@@ -17,6 +18,6 @@ module.exports = function imageTemplateGenerator(bg, tempConf, itemsConf) {
   if (!itemsConf) return Temp;
 
   return Temp.then((err, temp) => {
-    return temp.gen(itemsConf);
+    return temp.gen(itemsConf, options);
   });
 }
