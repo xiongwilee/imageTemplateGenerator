@@ -1,5 +1,7 @@
 # imageTemplateGenerator
 
+[![NPM version](https://img.shields.io/npm/v/image-template-generator.svg)](https://www.npmjs.com/package/image-template-generator)
+
 > 通过创建的模板，快速生成对应的图片，用以：自动生成营销分享图片、批量生成不同二维码的图片等等
 
 ![](http://wx4.sinaimg.cn/large/7171171cgy1fr2ks4nozjg20mz0buu0x.gif)
