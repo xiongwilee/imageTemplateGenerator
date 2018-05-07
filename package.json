@@ -1,0 +1,15 @@
+{
+  "name": "imageTemplateGenerator",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "xiongwilee",
+  "license": "MIT",
+  "dependencies": {
+    "gm": "^1.23.1",
+    "request": "^2.85.0"
+  }
+}
