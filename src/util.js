@@ -11,12 +11,12 @@ const request = require('request');
 
 /**
  * 通过未知参数获取图片
- * 
+ *
  * @param  {Buffer|Stream|String|Object} 	img 	图片的 Buffer / Stram / 链接 / request请求配置对象
  * @param  {Object} 						config	   配置
  *                              config.type Buffer | Stream | Path
  *                              config.path 如果config.type为Path,则配置path路径
- * @return {Promise} 
+ * @return {Promise}
  */
 exports.getImage = function getImage(img, config) {
   // 默认使用Buffer模式输出
@@ -100,7 +100,7 @@ exports.convertGmToRes = function convertGmToRes(imageGm, config) {
 
 /**
  * 通过request参数获取图片
- * 
+ *
  * @param  {Obejct} params request配置
  * @param  {Object} config 配置
  * @return {Promise}        图片
@@ -147,7 +147,7 @@ exports.getImageByText = function getImageByText(text, config) {
     const imgGm = gm(conf.width, conf.height, 'none')
       // 设置分辨率，使其在高清屏下更清晰
       .density(300, 300)
-      .stroke(conf.color)
+      .fill(conf.color)
       .font(fontFamily, conf.fontSize)
       // 这里垂直距离有偏移，必须通过fontSize的倍数消除偏移
       .drawText(conf.marginLeft, conf.marginTop, text)
