@@ -64,7 +64,7 @@ class Template {
     }, Promise.resolve(this.bg)).then((image) => {
       // console.log(Buffer.isBuffer(image), conf, '~~~~0');
       switch (conf.type) {
-        case 'Stram':
+        case 'Stream':
           return gm(image).stream();
           break;
         case 'Path':
@@ -102,7 +102,7 @@ class Template {
         .resize(sizeConf[0], sizeConf[1])
         .toBuffer('PNG', function(err, buffer) {
           if (err) return reject(err);
-          resolve(buffer)
+          resolve(buffer);
         });
     })
   }
@@ -127,7 +127,7 @@ class Template {
             // 完事儿后删除文件
             fs.unlinkSync(imagePath);
 
-            resolve(buffer)
+            resolve(buffer);
           });
       });
     });
