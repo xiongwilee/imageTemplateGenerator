@@ -151,6 +151,10 @@ exports.getImageByText = function getImageByText(text, config) {
     }
   }, config.style);
 
+  // 根据图片分辨率校准位置和大小
+  const resolution = 300;
+  const resizeRate = resolution / 96;
+
   // 文字字体
   const font = {
     family: pathResolve(`../fonts/SourceHanSerifCN-${conf.fontWeigth}.ttf`),
@@ -160,7 +164,7 @@ exports.getImageByText = function getImageByText(text, config) {
   // 外边距
   const margin = {
     left: conf.marginLeft,
-    top: font.size * 4
+    top: font.size * resizeRate
   }
 
   // 背景配置
@@ -188,7 +192,7 @@ exports.getImageByText = function getImageByText(text, config) {
 
   // 根据字体大小及图片宽度，用\n切割文字
   text = exports.cutText(text, font.size, config.width);
-  
+
   return new Promise((resolve, reject) => {
     // gm(x,y, 'none')为设置为透明，
     // 参考：https://github.com/aheckmann/gm/issues/580#issuecomment-291173926
@@ -199,7 +203,7 @@ exports.getImageByText = function getImageByText(text, config) {
     // 若需要生成背景色，则需要添加几步
     if (hasBg) {
       textGm.fill(bg.color)
-        .drawRectangle(0, 0, bg.width, bg.height, bg.radius, bg.radius)
+        .drawRectangle(0, 0, bg.width * resizeRate, bg.height * resizeRate, bg.radius, bg.radius);
     }
 
     // 最后生成文字，原因是先生成文字再绘制背景色会出现背景色被裁剪的问题
@@ -225,7 +229,6 @@ exports.getImageByText = function getImageByText(text, config) {
  * @return {String}          [description]
  */
 exports.cutText = function(text, fontSize, width) {
-  console.log(text, fontSize, width);
   const fontLength = Math.floor(width / fontSize);
 
   const reg = new RegExp(`(.{${fontLength}})`, 'g');
