@@ -8,12 +8,15 @@ const fs = require('fs');
 
 const gm = require('gm');
 const request = require('request');
+const pathResolve = function(...paths) {
+  return path.resolve(__dirname, ...paths);
+};
 
 /**
  * 通过未知参数获取图片
- *
- * @param  {Buffer|Stream|String|Object} 	img 	图片的 Buffer / Stram / 链接 / request请求配置对象
- * @param  {Object} 						config	   配置
+ * 
+ * @param  {Buffer|Stream|String|Object}  img   图片的 Buffer / Stram / 链接 / request请求配置对象
+ * @param  {Object}             config     配置
  *                              config.type Buffer | Stream | Path
  *                              config.path 如果config.type为Path,则配置path路径
  * @return {Promise}
@@ -129,6 +132,7 @@ exports.getImageByUrl = function getImageByUrl(params, config) {
 }
 
 exports.getImageByText = function getImageByText(text, config) {
+  // 覆盖默认样式配置
   const conf = Object.assign({
     color: '#333333',
     fontSize: '16',
@@ -136,35 +140,97 @@ exports.getImageByText = function getImageByText(text, config) {
     width: 4000,
     height: 4000,
     marginLeft: 0,
-    marginTop: 64
+    marginTop: 0,
+    background: {
+      // 设置为false，则不使用背景图片
+      // 一旦配置中设置了background , 利用Object.assign潜复制的特性，可以将enable置为undefined
+      enable: false,
+      padding: '15,28',
+      color: '#ffffff',
+      radius: '5'
+    }
   }, config.style);
 
-  const fontFamily = path.resolve(__dirname, `../fonts/SourceHanSerifCN-${conf.fontWeigth}.ttf`);
+  // 根据图片分辨率校准位置和大小
+  const resolution = 300;
+  const resizeRate = resolution / 96;
+
+  // 文字字体
+  const font = {
+    family: pathResolve(`../fonts/SourceHanSerifCN-${conf.fontWeigth}.ttf`),
+    size: +conf.fontSize
+  };
+
+  // 外边距
+  const margin = {
+    left: conf.marginLeft,
+    top: font.size * resizeRate
+  }
+
+  // 背景配置
+  const hasBg = conf.background && conf.background.enable !== false;
+  const bg = {};
+
+  // 背景图片配置
+  if (hasBg) {
+    const background = conf.background;
+    const padding = background.padding;
+
+    const paddingV = +padding.split(',')[0];
+    const paddingH = +padding.split(',')[1];
+
+    // 调整边距
+    margin.left += paddingH;
+    margin.top += paddingV;
+
+    // 背景色各种配置
+    bg.color = background.color;
+    bg.radius = background.radius;
+    bg.width = font.size * text.length + (paddingH * 2);
+    bg.height = font.size + paddingV * 2;
+  }
+
+  // 根据字体大小及图片宽度，用\n切割文字
+  text = exports.cutText(text, font.size, config.width);
 
   return new Promise((resolve, reject) => {
     // gm(x,y, 'none')为设置为透明，
     // 参考：https://github.com/aheckmann/gm/issues/580#issuecomment-291173926
-    const imgGm = gm(conf.width, conf.height, 'none')
+    const textGm = gm(conf.width, conf.height, 'none')
       // 设置分辨率，使其在高清屏下更清晰
-      .density(300, 300)
-      .fill(conf.color)
-      .font(fontFamily, conf.fontSize)
-      // 这里垂直距离有偏移，必须通过fontSize的倍数消除偏移
-      .drawText(conf.marginLeft, conf.marginTop, text)
-      .trim()
-      .toBuffer('PNG', function(err, buffer) {
-        // 测试是否读取到了bg
-        // fs.writeFile('./text.png', image, function(err){ console.log(err, '~~~~~~~') });
-        if (err) return reject(err);
+      .density(300, 300);
 
+    // 若需要生成背景色，则需要添加几步
+    if (hasBg) {
+      textGm.fill(bg.color)
+        .drawRectangle(0, 0, bg.width * resizeRate, bg.height * resizeRate, bg.radius, bg.radius);
+    }
+
+    // 最后生成文字，原因是先生成文字再绘制背景色会出现背景色被裁剪的问题
+    textGm.stroke(conf.color)
+      .fill(conf.color)
+      .font(font.family, font.size)
+      // 这里垂直距离有偏移，必须通过font.size消除偏移
+      .drawText(margin.left, margin.top, text)
+      .trim()
+      .toBuffer('PNG', (err, buffer) => {
+        if (err) return reject(err);
         resolve(buffer);
       });
-  });
 
-  // return exports.convertGmToRes(
-  //   gm(conf.width, conf.height, 'none')
-  //     .stroke(conf.color)
-  //     .font(fontFamily, conf.fontSize)
-  //     .drawText(0, conf.fontSize, text)
-  //     .trim(), config);
+  });
+}
+
+/**
+ * 根据宽度及字体大小切割文字
+ * @param  {String} text     [description]
+ * @param  {Number} fontSize [description]
+ * @param  {Number} width    [description]
+ * @return {String}          [description]
+ */
+exports.cutText = function(text, fontSize, width) {
+  const fontLength = Math.floor(width / fontSize);
+
+  const reg = new RegExp(`(.{${fontLength}})`, 'g');
+  return text.replace(reg, '$1\n');
 }

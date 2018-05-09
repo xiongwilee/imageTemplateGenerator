@@ -1,12 +1,14 @@
 const path = require('path');
 const fs = require('fs');
 
-const gm = require('gm');
 const Itg = require('../index');
+const resolve = function (...paths) {
+  return path.resolve(__dirname, ...paths);
+};
 
 // 通过模板、现在的数据生成图片
 // 返回一个promise
-Itg(path.resolve('../images/temp.png'), {
+Itg(resolve('../images/temp.png'), {
   logo: {
     size: '144,74',
     position: '+118+20',
@@ -34,7 +36,7 @@ Itg(path.resolve('../images/temp.png'), {
   slogan: {
     size: '343,56',
     position: '+14+430',
-    default: path.resolve('../images/slogan.png')
+    default: resolve('../images/slogan.png')
   },
   qrcode: {
     size: '91,91',
@@ -44,7 +46,7 @@ Itg(path.resolve('../images/temp.png'), {
 }).then((temp) => {
   return temp.gen({
     banner: 'https://img002.qufenqi.com/products/e0/af/e0afcc5a1350f4966f963bc0bff6aafa.jpg',
-    title: 'Apple iPhone X (A1865) 64GB 深空灰色 移动联通\n电信4G手机 ',
+    title: 'Apple iPhone X (A1865) 64GB 深空灰色 移动联通电信4G手机 ',
     logo: {
       method: 'GET',
       url: 'https://www.baidu.com/img/bd_logo1.png',
@@ -53,10 +55,10 @@ Itg(path.resolve('../images/temp.png'), {
       // 参考：https://github.com/request/request#requestoptions-callback encoding配置
       encoding: null
     },
-    qrcode: path.resolve('../images/qrcode.png')
+    qrcode: resolve('../images/qrcode.png')
   }, {
     type: 'Path',
-    path: './merged.png'
+    path: resolve('./merged.png')
   })
 }).then(() => {
   console.log('生成图片成功: ./merged.png !');
