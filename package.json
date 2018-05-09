@@ -1,7 +1,7 @@
 {
-  "name": "image-template-generator",
-  "version": "0.0.3",
-  "description": "",
+  "name": "image-template-generator-web",
+  "version": "0.0.1",
+  "description": "image-template-generator的web版本，基于puppeteer实现",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -9,7 +9,7 @@
   "author": "xiongwilee",
   "license": "MIT",
   "dependencies": {
-    "gm": "^1.23.1",
-    "request": "^2.85.0"
+    "request": "^2.85.0",
+    "puppeteer": "^1.3.0",
   }
 }

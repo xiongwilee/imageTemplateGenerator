@@ -6,14 +6,18 @@ const Stream = require('stream');
 const fs = require('fs');
 const path = require('path');
 
-const gm = require('gm');
 const Util = require('./util');
 
+const puppeteer = require('puppeteer');
+
 class Template {
-  constructor(bg, tempConf) {
-    this.bg = bg;
-    this.tempConf = tempConf;
-    this.temps = Object.keys(tempConf);
+  constructor(bgBase64, tempConf) {
+    this.bgBase64 = bgBase64;
+
+    if (tempConf) {
+      this.tempConf = tempConf;
+      this.temps = Object.keys(tempConf);
+    }
   }
 
   /**
@@ -21,133 +25,160 @@ class Template {
    * 
    * @param  {Object} itemsConf   图片的元素配置
    * @param  {Object} options      产出配置
-   *                  options.type 'Buffer'/'Stream'/'Path'
    * @return {Promise(<Buffer|Stream>)}    返回Promise
    */
   gen(itemsConf, options) {
-    const conf = Object.assign({
-      type: 'Buffer'
-    }, options);
+    // console.log(itemsConf, options, '~~~~~~~~0');
+    const promiseList = this.temps.map((key) => {
+      const img = itemsConf[key] || this.tempConf[key].default;
 
-    return this.temps.reduce((accu, curr, index) => {
-      const curTemp = this.tempConf[curr];
-      const curItem = itemsConf[curr];
-
-      return accu.then((bg) => {
-        // 测试是否读取到了bg
-
-        // 如果curItem没有配置，则使用默认的图片
-        const curImg = curItem || curTemp.default;
-
-        // 获取宽高配置
-        const sizeConf = curTemp.size && curTemp.size.split(',');
-
-        return Util.getImage(curImg, {
-            type: 'Stream',
-            width: sizeConf[0],
-            height: sizeConf[1],
-            style: curTemp.style
+      if (this.tempConf[key].type === 'text') {
+        return Promise.resolve({
+          key: key,
+          text: img
+        })
+      } else {
+        return Util.getImgBase64(img)
+          .then((imgBase64) => {
+            return {
+              key: key,
+              img: imgBase64
+            }
           })
-          .then((image) => {
-            // 测试是否读取到了配置文件中的图片
-            // fs.writeFile('./' + index + '.png', image, function(err){ console.log(err, '~~~~~~~') });
-
-            // 将要拼接的图片重置宽高
-            return this.resize(image, {
-              width: sizeConf[0],
-              height: sizeConf[1]
-            });
-          })
-          .then((image) => {
-            // 测试是否resize成功
-            // 在这里测试下，是不是BUFFER
-            // fs.writeFile('./' + index + '_resize.png', image, function(err) { console.log(err, '~~~~~~~') });
-            // fs.writeFile('./' + index + '_bg.png', bg, function(err){ console.log(err, '~~~~~~~') });
-
-            // 合并图片
-            return this.merge(image, bg, curTemp);
-          });
-      });
-
-    }, Promise.resolve(this.bg)).then((image) => {
-      // console.log(Buffer.isBuffer(image), conf, '~~~~0');
-      switch (conf.type) {
-        case 'Stream':
-          return gm(image).stream();
-          break;
-        case 'Path':
-          return new Promise((resolve, reject) => {
-            fs.writeFile(conf.path, image, function(err) {
-              if (err) return reject(err);
-              resolve(conf.path, image);
-            });
-          });
-          break;
-        case 'Buffer':
-        default:
-          return image;
-          break;
       }
     })
+
+    // console.log(promiseList, '~~~~~~~~1');
+    // TODO: 这里不会返回Buffer数据
+    return Promise.all(promiseList)
+      .then((dataList) => {
+        // console.log(dataList, '~~~~~~~~2');
+        const html = this.getHtmlByTemp(dataList);
+        // console.log(html, '~~~~~~~~3');
+        return this.getPageImg(html, options)
+      });
+  }
+
+  getPageImg(url, options, gotoOptions, shotOptions) {
+    const config = Object.assign({
+      width: 750,
+      height: 1334,
+      deviceScaleFactor: 1
+    }, options);
+
+    return this.getPage((page) => {
+      return Promise.resolve()
+        // 设置视口宽高
+        .then(() => {
+          return page.setViewport(config);
+        })
+        .then(() => {
+          if (Util.isUrl(url)) {
+            return page.goto(url, Object.assign({}, gotoOptions));
+          } else {
+            return page.setContent(url, gotoOptions);
+          }
+        })
+        .then(() => {
+          return page.screenshot(Object.assign({
+            path: './merged.png',
+            // 默认生成png图片
+            type: 'png',
+            // 是否截全屏
+            fullPage: true
+          }, shotOptions));
+        })
+    });
+  }
+
+  getHtmlByTemp(itemList) {
+    // 整体背景图片
+    const htmlStyle = {
+      backgroundImage: this.bgBase64 ? `url(${this.bgBase64})` : 'none',
+      backgroundSize: 'cover'
+    }
+
+    // 元素个体样式
+    const itemDoms = itemList.reduce((accu, item) => {
+      const curItem = this.tempConf[item.key];
+
+      // 获取宽高
+      const curItemSize = curItem.size.split(',') || [];
+      // 获取位置
+      const curItemPosi = curItem.position.match(/([\+\-]\d+)/g) || [];
+
+      const style = Object.assign({
+        position: 'absolute',
+        width: `${curItemSize[0]}px`,
+        height: `${curItemSize[1]}px`,
+        left: `${curItemPosi[0]}px`,
+        top: `${curItemPosi[1]}px`,
+
+        backgroundImage: !!item.img ? `url(${item.img})` : 'none',
+        backgroundSize: 'cover',
+
+        fontSize: '16px',
+        // TODO: 这里的fontFamily无效
+        fontFamily: 'Helvetica Neue,Helvetica,Arial,PingFang SC,Hiragino Sans GB',
+        WebkitFontSmoothing: 'antialiased'
+      }, curItem.style);
+
+      // console.log(!!item.img);
+      return accu + `<div id="${item.key}" style="${this.stringifyStyle(style)}">${item.text||''}</div>`;
+    }, '');
+
+    return `
+      <!DOCTYPE html>
+      <html style="${this.stringifyStyle(htmlStyle)}">
+        <head>
+          <meta charset="utf-8" />
+          <meta name="viewport" content="width=device-width,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+        </head>
+        <body>
+          ${itemDoms}
+        </body>
+      </html>`;
   }
 
   /**
-   * 重置图片宽高
+   * 将对象式的CSS属性，转化为CSS字符串
    * 
-   * @param  {Stream} image   图片流
-   * @param  {Object} config 当前模板配置
-   * @return {Promise(<Stream>)}    返回Promise, 返回为图片处理流     
+   * @param  {Object} style [description]
+   * @return {String}       [description]
    */
-  resize(image, config) {
-    // 如果有宽高配置，则重置高度
-    return new Promise((resolve, reject) => {
-      if (!config) return resolve(image);
-
-      gm(image)
-        .resize(config.width, config.height)
-        .toBuffer('PNG', function(err, buffer) {
-          if (err) return reject(err);
-          resolve(buffer);
-        });
-    })
+  stringifyStyle(style) {
+    return Object.keys(style).reduce((accu, key, index) => {
+      let styleKey = key.replace(/([A-Z])/g, letter => `-${letter.toLowerCase()}`);
+      return `${accu}${styleKey}:${style[key]};`;
+    }, '');
   }
 
-  merge(image, bg, curTemp) {
-
-    return new Promise((resolve, reject) => {
-      // 测试是否成功获取文件      
-      // fs.writeFile('./merge_images.png', image, function(err) { console.log(err, '~~~~~~~') });
-      // fs.writeFile('./merge_bg.png', bg, function(err) { console.log(err, '~~~~~~~') });
-
-      // 这里的composite方法不能执行一个Buffer，
-      // 所以必须先写入文件系统
-      const imagePath = path.resolve(__dirname, `../images/temp-${Date.now()}-${Math.random().toString(16).substr(2)}.png`);
-      fs.writeFile(imagePath, image, function(err) {
-        if (err) return reject(err);
-        gm(bg)
-          .composite(imagePath)
-          .geometry(curTemp.position)
-          .toBuffer('PNG', function(err, buffer) {
-            if (err) return reject(err);
-            // 完事儿后删除文件
-            fs.unlinkSync(imagePath);
-
-            resolve(buffer);
-          });
+  /**
+   * 获取一个通过puppeteer打开的page对象
+   * 
+   * @param  {Function} process 中间进程,return Promise
+   * @return 
+   */
+  getPage(process) {
+    return puppeteer.launch()
+      .then((browser) => {
+        return browser.newPage()
+          .then((page) => {
+            return process(page);
+          })
+          .then((data) => {
+            return browser.close(() => {
+              return data;
+            })
+          })
       });
-    });
   }
 }
 
 module.exports = function(bg, tempConf) {
-  // 这里通过获取bg的buffer
-  // 以防 new Template(bg, tempConf) 与 temp.gen 不在一个执行队列导致的stream丢包问题
-  return Util.getImage(bg, { type: 'Buffer' })
-    .then((image) => {
-      if (!Buffer.isBuffer(image)) throw 'Illegal Backgroud Image Format!';
-      // 测试是否读取到了bg
-      // fs.writeFile('./bg.png', image, function(err){ console.log(err, '~~~~~~~') });
-
-      return new Template(image, tempConf);
+  // 先获取背景图片
+  return Util.getImgBase64(bg)
+    .then((bgBase64) => {
+      return new Template(bgBase64, tempConf)
     });
 }
