@@ -19,7 +19,7 @@ const pathResolve = function(...paths) {
  * @param  {Object}             config     配置
  *                              config.type Buffer | Stream | Path
  *                              config.path 如果config.type为Path,则配置path路径
- * @return {Promise} 
+ * @return {Promise}
  */
 exports.getImage = function getImage(img, config) {
   // 默认使用Buffer模式输出
@@ -103,7 +103,7 @@ exports.convertGmToRes = function convertGmToRes(imageGm, config) {
 
 /**
  * 通过request参数获取图片
- * 
+ *
  * @param  {Obejct} params request配置
  * @param  {Object} config 配置
  * @return {Promise}        图片
