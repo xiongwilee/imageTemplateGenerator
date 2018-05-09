@@ -46,7 +46,7 @@ Itg(resolve('../images/temp.png'), {
 }).then((temp) => {
   return temp.gen({
     banner: 'https://img002.qufenqi.com/products/e0/af/e0afcc5a1350f4966f963bc0bff6aafa.jpg',
-    title: 'Apple iPhone X (A1865) 64GB 深空灰色 移动联通\n电信4G手机 ',
+    title: 'Apple iPhone X (A1865) 64GB 深空灰色 移动联通电信4G手机 ',
     logo: {
       method: 'GET',
       url: 'https://www.baidu.com/img/bd_logo1.png',

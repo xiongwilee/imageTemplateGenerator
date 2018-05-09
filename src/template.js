@@ -39,8 +39,13 @@ class Template {
         // 如果curItem没有配置，则使用默认的图片
         const curImg = curItem || curTemp.default;
 
+        // 获取宽高配置
+        const sizeConf = curTemp.size && curTemp.size.split(',');
+
         return Util.getImage(curImg, {
             type: 'Stream',
+            width: sizeConf[0],
+            height: sizeConf[1],
             style: curTemp.style
           })
           .then((image) => {
@@ -48,7 +53,10 @@ class Template {
             // fs.writeFile('./' + index + '.png', image, function(err){ console.log(err, '~~~~~~~') });
 
             // 将要拼接的图片重置宽高
-            return this.resize(image, curTemp);
+            return this.resize(image, {
+              width: sizeConf[0],
+              height: sizeConf[1]
+            });
           })
           .then((image) => {
             // 测试是否resize成功
@@ -87,19 +95,16 @@ class Template {
    * 重置图片宽高
    * 
    * @param  {Stream} image   图片流
-   * @param  {Object} curTemp 当前模板配置
+   * @param  {Object} config 当前模板配置
    * @return {Promise(<Stream>)}    返回Promise, 返回为图片处理流     
    */
-  resize(image, curTemp) {
-    // 获取宽高配置
-    const sizeConf = curTemp.size && curTemp.size.split(',');
-
+  resize(image, config) {
     // 如果有宽高配置，则重置高度
     return new Promise((resolve, reject) => {
-      if (!sizeConf) return resolve(image);
+      if (!config) return resolve(image);
 
       gm(image)
-        .resize(sizeConf[0], sizeConf[1])
+        .resize(config.width, config.height)
         .toBuffer('PNG', function(err, buffer) {
           if (err) return reject(err);
           resolve(buffer);

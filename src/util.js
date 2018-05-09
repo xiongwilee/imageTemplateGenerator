@@ -8,7 +8,7 @@ const fs = require('fs');
 
 const gm = require('gm');
 const request = require('request');
-const pathResolve = function (...paths) {
+const pathResolve = function(...paths) {
   return path.resolve(__dirname, ...paths);
 };
 
@@ -133,67 +133,81 @@ exports.getImageByUrl = function getImageByUrl(params, config) {
 
 exports.getImageByText = function getImageByText(text, config) {
   // 覆盖默认样式配置
-  const defaultConf = {
+  const conf = Object.assign({
     color: '#333333',
     fontSize: '16',
     fontWeigth: 'Normal',
     width: 4000,
     height: 4000,
     marginLeft: 0,
-    marginTop: -8,
+    marginTop: 0,
     background: {
+      // 设置为false，则不使用背景图片
+      // 一旦配置中设置了background , 利用Object.assign潜复制的特性，可以将enable置为undefined
+      enable: false,
       padding: '15,28',
       color: '#ffffff',
       radius: '5'
     }
-  };
-  const conf = Object.assign(defaultConf, config.style);
-  const fontFamily = pathResolve(`../fonts/SourceHanSerifCN-${conf.fontWeigth}.ttf`);
-  const hasBackground = !!conf.background && Object.keys(conf.background).length > 0;
+  }, config.style);
 
+  // 文字字体
+  const font = {
+    family: pathResolve(`../fonts/SourceHanSerifCN-${conf.fontWeigth}.ttf`),
+    size: +conf.fontSize
+  };
+
+  // 外边距
+  const margin = {
+    left: conf.marginLeft,
+    top: font.size * 4
+  }
+
+  // 背景配置
+  const hasBg = conf.background && conf.background.enable !== false;
+  const bg = {};
+
+  // 背景图片配置
+  if (hasBg) {
+    const background = conf.background;
+    const padding = background.padding;
+
+    const paddingV = +padding.split(',')[0];
+    const paddingH = +padding.split(',')[1];
+
+    // 调整边距
+    margin.left += paddingH;
+    margin.top += paddingV;
+
+    // 背景色各种配置
+    bg.color = background.color;
+    bg.radius = background.radius;
+    bg.width = font.size * text.length + (paddingH * 2);
+    bg.height = font.size + paddingV * 2;
+  }
+
+  // 根据字体大小及图片宽度，用\n切割文字
+  text = exports.cutText(text, font.size, config.width);
+  
   return new Promise((resolve, reject) => {
-    const fontSize = +conf.fontSize;
-    // 生成图片背景色所需变量
-    let background = conf.background,
-      padding,
-      paddingV,
-      paddingH;
-    // 文字外边距
-    let textMarginLeft = conf.marginLeft,
-      textMarginTop = conf.marginTop + fontSize;
     // gm(x,y, 'none')为设置为透明，
     // 参考：https://github.com/aheckmann/gm/issues/580#issuecomment-291173926
-    // 生成文字
-    const textGm = gm(conf.width, conf.height, 'none');
+    const textGm = gm(conf.width, conf.height, 'none')
       // 设置分辨率，使其在高清屏下更清晰
-      // yuanye：不知道为什么要调用该方法，直接用更大字体就可以了吧？调用后还会造成计算距离时有比率的问题
-      // .density(300, 300)
-    // 若需要生成背景色，则需要添加几步
-    if (hasBackground) {
-      const { padding: defaultPadding,
-        color: defaultColor,
-        radius: defaultRadius
-      } = defaultConf.background;
-      padding = background.padding || defaultPadding;
-      paddingV = +padding.split(',')[0];
-      paddingH = +padding.split(',')[1];
-      textMarginLeft += paddingH;
-      textMarginTop += paddingV;
-      // 背景色各种配置
-      const bgColor = background.color || defaultColor,
-        bgRadius = background.radius || defaultRadius,
-        bgWidth = fontSize * text.length + (paddingH * 2),
-        bgHeight = fontSize + paddingV * 2;
+      .density(300, 300);
 
-      textGm.fill(bgColor)
-        .drawRectangle(0, 0, bgWidth, bgHeight, bgRadius, bgRadius)
-        .fill(conf.color);
+    // 若需要生成背景色，则需要添加几步
+    if (hasBg) {
+      textGm.fill(bg.color)
+        .drawRectangle(0, 0, bg.width, bg.height, bg.radius, bg.radius)
     }
+
     // 最后生成文字，原因是先生成文字再绘制背景色会出现背景色被裁剪的问题
     textGm.stroke(conf.color)
-      .font(fontFamily, conf.fontSize)
-      // 这里垂直距离有偏移，必须通过fontSize消除偏移
-      .drawText(textMarginLeft, textMarginTop, text)
+      .fill(conf.color)
+      .font(font.family, font.size)
+      // 这里垂直距离有偏移，必须通过font.size消除偏移
+      .drawText(margin.left, margin.top, text)
       .trim()
       .toBuffer('PNG', (err, buffer) => {
         if (err) return reject(err);
@@ -201,10 +215,19 @@ exports.getImageByText = function getImageByText(text, config) {
       });
 
   });
-  // return exports.convertGmToRes(
-  //   gm(conf.width, conf.height, 'none')
-  //     .stroke(conf.color)
-  //     .font(fontFamily, conf.fontSize)
-  //     .drawText(0, conf.fontSize, text)
-  //     .trim(), config);
+}
+
+/**
+ * 根据宽度及字体大小切割文字
+ * @param  {String} text     [description]
+ * @param  {Number} fontSize [description]
+ * @param  {Number} width    [description]
+ * @return {String}          [description]
+ */
+exports.cutText = function(text, fontSize, width) {
+  console.log(text, fontSize, width);
+  const fontLength = Math.floor(width / fontSize);
+
+  const reg = new RegExp(`(.{${fontLength}})`, 'g');
+  return text.replace(reg, '$1\n');
 }
