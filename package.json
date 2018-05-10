@@ -9,7 +9,7 @@
   "author": "xiongwilee",
   "license": "MIT",
   "dependencies": {
-    "request": "^2.85.0",
-    "puppeteer": "^1.3.0"
+    "puppeteer": "^1.4.0",
+    "request": "^2.85.0"
   }
 }
