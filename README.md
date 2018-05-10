@@ -1,6 +1,6 @@
-# imageTemplateGenerator
+# imageTemplateGenerator(puppeteer版)
 
-[![NPM version](https://img.shields.io/npm/v/image-template-generator.svg)](https://www.npmjs.com/package/image-template-generator)
+[![NPM version](https://img.shields.io/npm/v/image-template-generator-web.svg)](https://www.npmjs.com/package/image-template-generator-web)
 
 > 通过创建的模板，快速生成对应的图片，用以：自动生成营销分享图片、批量生成不同二维码的图片等等
 
@@ -8,24 +8,12 @@
 
 ## 一、入门
 
-### 1、环境依赖
-
-imageTemplateGenerator 基于 [gm](https://github.com/aheckmann/gm) ，所以同gm的依赖，需要安装对应的工具。
-
-参考： [https://github.com/aheckmann/gm#getting-started](https://github.com/aheckmann/gm#getting-started)
-
-```shell
-$ brew install imagemagick
-$ brew install graphicsmagick
-$ brew install ghostscript
-```
-
-### 2、试用
+imageTemplateGenerator(puppeteer版)基于puppeteer实现，大致原理为根据配置渲染网页，然后截图返回。
 
 下载文件到任意目录，并安装依赖：
 ```shell
 # 仓储有一套中文字体，clone会比较慢，请耐心等候
-$ git clone git://github.com/xiongwilee/imageTemplateGenerator.git
+$ git clone  -b puppeteer git://github.com/xiongwilee/imageTemplateGenerator.git imageTemplateGenerator
 $ cd imageTemplateGenerator
 $ npm install
 ```
@@ -44,18 +32,16 @@ $ node index.js
 
 **1）安装依赖**
 
-说明： `imagemagick`, `graphicsmagick`, `ghostscript` 也是必须的，见上文。
-
 ```shell
-$ npm install image-template-generator
+$ npm install image-template-generator-web
 ```
 
 **2）使用**
 
 用法一：
 ```javascript
-const Itg = require('image-template-generator');
-Itg(bgImg, { /* template config*/})
+const Itgw = require('image-template-generator');
+Itgw(bgImg, { /* template config*/})
   .then((temp)=>{
     return temp.gen({/* item config */}, { /* options */ })
   })
@@ -66,8 +52,8 @@ Itg(bgImg, { /* template config*/})
 
 用法二：
 ```javascript
-const Itg = require('image-template-generator');
-Itg(bgImg, { /* template config*/}, {/* item config */}, { /* options */ })
+const Itgw = require('image-template-generator');
+Itgw(bgImg, { /* template config*/}, {/* item config */}, { /* options */ })
   .then((result)=>{
     // result
   })
@@ -87,14 +73,14 @@ Itg(bgImg, { /* template config*/}, {/* item config */}, { /* options */ })
  * @param  {Object} tempConf                模板配置
  * @return {Promise}
  */
-Itg(bgImg[, Template config])
+Itgw(bgImg[, Template config])
 ```
 
 例如：
 ```javascript
-const Itg = require('image-template-generator');
-const bgImg = '<Buffer|Stream|Url<String>|Path<String>|Request Config<Object>'
-Itg(bgImg, { /* template config*/})
+const Itgw = require('image-template-generator');
+const bgImg = '<Url<String>|Path<String>|Request Config<Object>'
+Itgw(bgImg, { /* template config*/})
   .then((temp)=>{
     // temp 是实例化之后的模板对象
     // 后续可以通过 temp.gen 方法根据创建的模板生成图片
@@ -105,8 +91,6 @@ Itg(bgImg, { /* template config*/})
 
 整体的背景图片，可以是：
 
-- `Buffer`: 文件Buffer
-- `Stream`: 文件流，例如：请求图片的http response
 - `Url<String>`: 图片的链接
 - `Path<String>`: 图片的文件系统路径
 - `Request Config<Object>`: [requestjs](https://github.com/request/request) 的请求配置，参考[requestjs的配置文档](https://github.com/request/request#requestoptions-callback)
@@ -126,7 +110,7 @@ Itg(bgImg, { /* template config*/})
     size: '320,60',
     position: '+28+380',
     style: { // 文字样式
-      fontSize: '14',
+      fontSize: '14px',
       color: '#333333'
     },
     default: '更多商品，敬请期待' // 嵌入的文字，需要手动用'\n'分割
@@ -148,16 +132,20 @@ Itg(bgImg, { /* template config*/})
 }
 ```
 
+其中`style`配置可以配置任意CSS语法。
+
 ### 2）通过模板生成图片
 
 ```javascript
 /**
    * 通过模板生成对应的图片
    * 
-   * @param  {Object} itemsConf   图片的元素配置
-   * @param  {Object} options      产出配置
-   *                  options.type 'Buffer'/'Stream'/'Path'
-   * @return {Promise(<Buffer|Stream>)}    返回Promise
+   * @param  {Object} itemsConf       图片的元素配置
+   * @param  {Object} options         产出配置
+   *                  options.type    写死为Buffer
+   *                  options.height  生成的图片高度
+   *                  optiosn.width   生成的图片宽度
+   * @return {Promise(<Buffer>)}    返回Promise
    */
 temp.gen(itemsConf[, options])
 ```
@@ -181,15 +169,12 @@ temp.gen({/* item config */}, { /* options */ })
       method: 'GET',
       url: 'https://www.baidu.com/img/bd_logo1.png',
       // body: JSON.stringify(postData),
-      // encoding - encoding to be used on setEncoding of response data. If null, the body is returned as a Buffer.
-      // 参考：https://github.com/request/request#requestoptions-callback encoding配置
-      encoding: null
     },
     qrcode: path.resolve('../images/qrcode.png')
 }
 ```
 
-key对应的值，和bgImg一致，包括：`<Buffer|Stream|Url<String>|Path<String>|Request Config<Object>`。
+key对应的值，和bgImg一致，包括：`<Url<String>|Path<String>|Request Config<Object>`。
 
 **options**
 
@@ -203,7 +188,6 @@ key对应的值，和bgImg一致，包括：`<Buffer|Stream|Url<String>|Path<Str
 
 - [ ] 添加测试用例 
 - [ ] 文字行高，及自动换行功能
-- [ ] 字体扩展，目前仅支持 `SourceHanSerifCN-Normal.ttf`
 
 ## 三、贡献
 

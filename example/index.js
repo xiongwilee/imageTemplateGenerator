@@ -28,8 +28,8 @@ Itg(resolve('../images/temp.png'), {
     size: '320,60',
     position: '+28+380',
     style: {
-      fontSize: '14',
-      fontFamily: '',
+      fontSize: '16px',
+      fontFamily: 'arial, sans-serif',
       color: '#333333'
     },
     type: 'text',

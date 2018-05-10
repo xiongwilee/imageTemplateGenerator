@@ -49,13 +49,16 @@ class Template {
     })
 
     // console.log(promiseList, '~~~~~~~~1');
-    // TODO: 这里不会返回Buffer数据
     return Promise.all(promiseList)
       .then((dataList) => {
-        // console.log(dataList, '~~~~~~~~2');
         const html = this.getHtmlByTemp(dataList);
         // console.log(html, '~~~~~~~~3');
         return this.getPageImg(html, options)
+      })
+      .then((data) => {
+        if (!Buffer.isBuffer(data)) throw new Error('Get screenshot Error!');
+
+        return data;
       });
   }
 
@@ -67,28 +70,38 @@ class Template {
     }, options);
 
     return this.getPage((page) => {
-      return Promise.resolve()
-        // 设置视口宽高
-        .then(() => {
-          return page.setViewport(config);
-        })
-        .then(() => {
-          if (Util.isUrl(url)) {
-            return page.goto(url, Object.assign({}, gotoOptions));
-          } else {
-            return page.setContent(url, gotoOptions);
-          }
-        })
-        .then(() => {
-          return page.screenshot(Object.assign({
-            path: './merged.png',
-            // 默认生成png图片
-            type: 'png',
-            // 是否截全屏
-            fullPage: true
-          }, shotOptions));
-        })
-    });
+        return Promise.resolve()
+          // 设置视口宽高
+          .then(() => {
+            return page.setViewport(config);
+          })
+          .then(() => {
+            if (Util.isUrl(url)) {
+              return page.goto(url, Object.assign({}, gotoOptions));
+            } else {
+              return page.setContent(url, gotoOptions);
+            }
+          })
+          .then(() => {
+            return page.screenshot(Object.assign({
+              path: options.path,
+              // 默认生成png图片
+              type: 'png',
+              // 是否截全屏
+              fullPage: true,
+              // 图片质量:  options.quality is unsupported for the png screenshots , 先注释
+              // quality: 100
+            }, shotOptions)).then((data) => {
+              return data;
+            });
+          })
+          .then((data) => {
+            return data;
+          });
+      })
+      .then((data) => {
+        return data;
+      });
   }
 
   getHtmlByTemp(itemList) {
@@ -119,10 +132,11 @@ class Template {
 
         fontSize: '16px',
         // TODO: 这里的fontFamily无效
-        fontFamily: 'Helvetica Neue,Helvetica,Arial,PingFang SC,Hiragino Sans GB',
+        fontFamily: 'arial,sans-serif',
         WebkitFontSmoothing: 'antialiased'
       }, curItem.style);
 
+      // console.log(this.stringifyStyle(style), '~~~~~~~~~');
       // console.log(!!item.img);
       return accu + `<div id="${item.key}" style="${this.stringifyStyle(style)}">${item.text||''}</div>`;
     }, '');
@@ -149,7 +163,9 @@ class Template {
   stringifyStyle(style) {
     return Object.keys(style).reduce((accu, key, index) => {
       let styleKey = key.replace(/([A-Z])/g, letter => `-${letter.toLowerCase()}`);
-      return `${accu}${styleKey}:${style[key]};`;
+      let styleVal = style[key].replace(/\"/g, '');
+      
+      return `${accu}${styleKey}:${styleVal};`;
     }, '');
   }
 
@@ -167,9 +183,10 @@ class Template {
             return process(page);
           })
           .then((data) => {
-            return browser.close(() => {
-              return data;
-            })
+            return browser.close()
+              .then(() => {
+                return data;
+              })
           })
       });
   }
