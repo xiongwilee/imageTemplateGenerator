@@ -39,7 +39,7 @@ $ npm install image-template-generator-web
 
 用法一：
 ```javascript
-const Itgw = require('image-template-generator');
+const Itgw = require('image-template-generator-web');
 Itgw(bgImg, { /* template config*/})
   .then((temp)=>{
     return temp.gen({/* item config */}, { /* options */ })
@@ -51,7 +51,7 @@ Itgw(bgImg, { /* template config*/})
 
 用法二：
 ```javascript
-const Itgw = require('image-template-generator');
+const Itgw = require('image-template-generator-web');
 Itgw(bgImg, { /* template config*/}, {/* item config */}, { /* options */ })
   .then((result)=>{
     // result
@@ -77,7 +77,7 @@ Itgw(bgImg[, Template config])
 
 例如：
 ```javascript
-const Itgw = require('image-template-generator');
+const Itgw = require('image-template-generator-web');
 const bgImg = '<String<Url>|String<Path>|Object<Request Config>'
 Itgw(bgImg, { /* template config*/})
   .then((temp)=>{

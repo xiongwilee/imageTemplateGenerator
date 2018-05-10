@@ -1,6 +1,6 @@
 {
   "name": "image-template-generator-web",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "image-template-generator的web版本，基于puppeteer实现",
   "main": "index.js",
   "scripts": {
