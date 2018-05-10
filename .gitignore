@@ -2,3 +2,4 @@ node_modules/
 merged.png
 text-background.png
 *.log
+*.log.*

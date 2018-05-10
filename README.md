@@ -97,7 +97,7 @@ Itgw(bgImg, { /* template config*/})
 
 **template config**
 
-模板的配置，用以说明每个元素的大小、位置、默认图片等属性。
+模板的配置，用以说明每个元素的大小、位置、默认图片等属性。特地说明下，如果是文字类型的元素，需要用`type:'text'`属性做标记。
 
 ```JavaScript
 {
@@ -107,6 +107,7 @@ Itgw(bgImg, { /* template config*/})
     default: 'http://img002.qufenqi.com/products/ac/04/ac04decbbd372b5289e1bf1be30fad99.png' // 默认图片，和bgImg一样，可以是：<Buffer|Stream|Url<String>|Path<String>|Request Config<Object>
   },
   title: {
+    type: 'text', // 标记当前元素为文字
     size: '320,60',
     position: '+28+380',
     style: { // 文字样式
@@ -132,7 +133,28 @@ Itgw(bgImg, { /* template config*/})
 }
 ```
 
-其中`style`配置可以配置任意CSS语法。
+其中`style`配置可以配置任意CSS语法（支持图片及文字模式），比如：
+
+```javascript
+text_example: {
+    type: 'text',
+    size: '320,60',
+    position: '+28+380',
+    // 样式
+    style: { 
+      // 字体大小
+      fontSize: '14px',
+      // 字体样式
+      fontFamily: '字体名称',
+      // 字体加粗
+      fontWeight: 'bold',
+      // 颜色
+      color: '#333333'
+      // ...
+    },
+    default: '这是文字文本示例' // 嵌入的文字，需要手动用'\n'分割
+  },
+```
 
 ### 2）通过模板生成图片
 
@@ -187,7 +209,6 @@ key对应的值，和bgImg一致，包括：`<Url<String>|Path<String>|Request C
 ### 3、TODO
 
 - [ ] 添加测试用例 
-- [ ] 文字行高，及自动换行功能
 
 ## 三、贡献
 
