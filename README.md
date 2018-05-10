@@ -68,7 +68,7 @@ Itgw(bgImg, { /* template config*/}, {/* item config */}, { /* options */ })
 /**
  * imageTemplateGenerator： 通过创建的模板，拼接合并成一张图片
  * 
- * @param  {<Buffer|Stream|Url<String>|Path<String>|Request Config<Object>} bg        背景图片
+ * @param  {<String<Url>|String<Path>|Object<Request Config>} bg        背景图片
  * @param  {Object} tempConf                模板配置
  * @return {Promise}
  */
@@ -78,7 +78,7 @@ Itgw(bgImg[, Template config])
 例如：
 ```javascript
 const Itgw = require('image-template-generator');
-const bgImg = '<Url<String>|Path<String>|Request Config<Object>'
+const bgImg = '<String<Url>|String<Path>|Object<Request Config>'
 Itgw(bgImg, { /* template config*/})
   .then((temp)=>{
     // temp 是实例化之后的模板对象
@@ -90,9 +90,9 @@ Itgw(bgImg, { /* template config*/})
 
 整体的背景图片，可以是：
 
-- `Url<String>`: 图片的链接
-- `Path<String>`: 图片的文件系统路径
-- `Request Config<Object>`: [requestjs](https://github.com/request/request) 的请求配置，参考[requestjs的配置文档](https://github.com/request/request#requestoptions-callback)
+- `String<Url>`: 图片的链接
+- `String<Path>`: 图片的文件系统路径
+- `Object<Request Config>`: [requestjs](https://github.com/request/request) 的请求配置，参考[requestjs的配置文档](https://github.com/request/request#requestoptions-callback)
 
 **template config**
 
@@ -103,7 +103,7 @@ Itgw(bgImg, { /* template config*/})
   logo: {
     size: '144,74', // 图片的大小，用“,”分割，第一个值为宽，第二个值为高
     position: '+118+20', // 图片的位置，用“+”或“-”分割，第一个值为相对于bgImg的x轴偏移，第二个值为相对y轴，参考：https://github.com/aheckmann/gm
-    default: 'http://img002.qufenqi.com/products/ac/04/ac04decbbd372b5289e1bf1be30fad99.png' // 默认图片，和bgImg一样，可以是：<Buffer|Stream|Url<String>|Path<String>|Request Config<Object>
+    default: 'http://img002.qufenqi.com/products/ac/04/ac04decbbd372b5289e1bf1be30fad99.png' // 默认图片，和bgImg一样，可以是：<String<Url>|String<Path>|Object<Request Config>
   },
   title: {
     type: 'text', // 标记当前元素为文字
@@ -195,11 +195,11 @@ temp.gen({/* item config */}, { /* options */ })
 }
 ```
 
-key对应的值，和bgImg一致，包括：`<Url<String>|Path<String>|Request Config<Object>`。
+key对应的值，和bgImg一致，包括：`<String<Url>|String<Path>|Object<Request Config>`。
 
 **options**
-
-- `type`: String， 可以配置为'Buffer'/'Stream'/'Path'，默认为'Buffer'
+- `height`: Number，图片高度
+- `width`: Number，图片宽度
 - `path`: String，如果options配置为"Path"，则需要配置写入文件系统的路径
 
 
