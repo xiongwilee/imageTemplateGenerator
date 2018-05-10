@@ -113,7 +113,7 @@ Itgw(bgImg, { /* template config*/})
       fontSize: '14px',
       color: '#333333'
     },
-    default: '更多商品，敬请期待' // 嵌入的文字，需要手动用'\n'分割
+    default: '更多商品，敬请期待' // 嵌入的文字
   },
   slogan: {
     size: '343,56',
