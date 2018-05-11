@@ -8,7 +8,7 @@ const path = require('path');
 
 const Util = require('./util');
 
-const puppeteer = require('puppeteer');
+const puppeteer = require('puppeteer-cn');
 
 class Template {
   constructor(bgBase64, tempConf) {
