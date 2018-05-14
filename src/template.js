@@ -1,7 +1,6 @@
 /**
  * @author xiongwilee
  */
-
 const Stream = require('stream');
 const fs = require('fs');
 const path = require('path');
@@ -11,9 +10,9 @@ const Util = require('./util');
 const puppeteer = require('puppeteer-cn');
 
 class Template {
-  constructor(bgBase64, tempConf) {
+  constructor(bgBase64, tempConf, puppeteerConfig = {}) {
     this.bgBase64 = bgBase64;
-
+    this.puppeteerConfig = puppeteerConfig;
     if (tempConf) {
       this.tempConf = tempConf;
       this.temps = Object.keys(tempConf);
@@ -22,7 +21,7 @@ class Template {
 
   /**
    * 通过模板生成对应的图片
-   * 
+   *
    * @param  {Object} itemsConf   图片的元素配置
    * @param  {Object} options      产出配置
    * @return {Promise(<Buffer|Stream>)}    返回Promise
@@ -36,17 +35,17 @@ class Template {
         return Promise.resolve({
           key: key,
           text: img
-        })
+        });
       } else {
         return Util.getImgBase64(img)
           .then((imgBase64) => {
             return {
               key: key,
               img: imgBase64
-            }
-          })
+            };
+          });
       }
-    })
+    });
 
     // console.log(promiseList, '~~~~~~~~1');
     return Promise.all(promiseList)
@@ -109,7 +108,7 @@ class Template {
     const htmlStyle = {
       backgroundImage: this.bgBase64 ? `url(${this.bgBase64})` : 'none',
       backgroundSize: 'cover'
-    }
+    };
 
     // 元素个体样式
     const itemDoms = itemList.reduce((accu, item) => {
@@ -156,7 +155,7 @@ class Template {
 
   /**
    * 将对象式的CSS属性，转化为CSS字符串
-   * 
+   *
    * @param  {Object} style [description]
    * @return {String}       [description]
    */
@@ -164,19 +163,19 @@ class Template {
     return Object.keys(style).reduce((accu, key, index) => {
       let styleKey = key.replace(/([A-Z])/g, letter => `-${letter.toLowerCase()}`);
       let styleVal = style[key].replace(/\"/g, '');
-      
+
       return `${accu}${styleKey}:${styleVal};`;
     }, '');
   }
 
   /**
-   * 获取一个通过puppeteer打开的page对象
-   * 
+   * 获取一个通过puppeteerConfig打开的page对象
+   *
    * @param  {Function} process 中间进程,return Promise
-   * @return 
+   * @return
    */
   getPage(process) {
-    return puppeteer.launch()
+    return puppeteer.launch(this.puppeteerConfig.launch)
       .then((browser) => {
         return browser.newPage()
           .then((page) => {
@@ -192,10 +191,10 @@ class Template {
   }
 }
 
-module.exports = function(bg, tempConf) {
+module.exports = function(bg, tempConf, puppeteerConfig) {
   // 先获取背景图片
   return Util.getImgBase64(bg)
     .then((bgBase64) => {
-      return new Template(bgBase64, tempConf)
+      return new Template(bgBase64, tempConf, puppeteerConfig);
     });
 }
