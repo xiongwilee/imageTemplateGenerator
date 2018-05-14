@@ -164,7 +164,7 @@ exports.getImageByText = function getImageByText(text, config) {
   // 外边距
   const margin = {
     left: conf.marginLeft,
-    top: font.size * resizeRate
+    top: conf.marginTop + font.size * resizeRate
   }
 
   // 背景配置
