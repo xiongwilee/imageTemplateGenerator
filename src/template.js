@@ -29,66 +29,64 @@ class Template {
       type: 'Buffer'
     }, options);
 
-    return this.temps.reduce((accu, curr, index) => {
+    const promiseList = this.temps.map((curr) => {
       const curTemp = this.tempConf[curr];
       const curItem = itemsConf[curr];
 
-      return accu.then((bg) => {
-        // 测试是否读取到了bg
+      // 如果curItem没有配置，则使用默认的图片
+      const curImg = curItem || curTemp.default;
 
-        // 如果curItem没有配置，则使用默认的图片
-        const curImg = curItem || curTemp.default;
+      // 获取宽高配置
+      const sizeConf = curTemp.size && curTemp.size.split(',');
 
-        // 获取宽高配置
-        const sizeConf = curTemp.size && curTemp.size.split(',');
+      return Util.getImage(curImg, {
+          type: 'Stream',
+          width: sizeConf[0],
+          height: sizeConf[1],
+          style: curTemp.style
+        })
+        .then((image) => {
+          // 测试是否读取到了配置文件中的图片
+          // fs.writeFile('./' + index + '.png', image, function(err){ console.log(err, '~~~~~~~') });
 
-        return Util.getImage(curImg, {
-            type: 'Stream',
+          // 将要拼接的图片重置宽高
+          return this.resize(image, {
             width: sizeConf[0],
-            height: sizeConf[1],
-            style: curTemp.style
-          })
-          .then((image) => {
-            // 测试是否读取到了配置文件中的图片
-            // fs.writeFile('./' + index + '.png', image, function(err){ console.log(err, '~~~~~~~') });
-
-            // 将要拼接的图片重置宽高
-            return this.resize(image, {
-              width: sizeConf[0],
-              height: sizeConf[1]
-            });
-          })
-          .then((image) => {
-            // 测试是否resize成功
-            // 在这里测试下，是不是BUFFER
-            // fs.writeFile('./' + index + '_resize.png', image, function(err) { console.log(err, '~~~~~~~') });
-            // fs.writeFile('./' + index + '_bg.png', bg, function(err){ console.log(err, '~~~~~~~') });
-
-            // 合并图片
-            return this.merge(image, bg, curTemp);
+            height: sizeConf[1]
           });
-      });
-
-    }, Promise.resolve(this.bg)).then((image) => {
-      // console.log(Buffer.isBuffer(image), conf, '~~~~0');
-      switch (conf.type) {
-        case 'Stream':
-          return gm(image).stream();
-          break;
-        case 'Path':
-          return new Promise((resolve, reject) => {
-            fs.writeFile(conf.path, image, function(err) {
-              if (err) return reject(err);
-              resolve(conf.path, image);
-            });
-          });
-          break;
-        case 'Buffer':
-        default:
-          return image;
-          break;
-      }
+        })
+        .then((image) => {
+          return { image, curTemp }
+        })
     })
+
+    return Promise.all(promiseList)
+      .then((imags) => {
+        return imags.reduce((accu, curr, index) => {
+          return accu.then((bg) => {
+            return this.merge(curr.image, bg, curr.curTemp);
+          });
+        }, Promise.resolve(this.bg)).then((image) => {
+          // console.log(Buffer.isBuffer(image), conf, '~~~~0');
+          switch (conf.type) {
+            case 'Stream':
+              return gm(image).stream();
+              break;
+            case 'Path':
+              return new Promise((resolve, reject) => {
+                fs.writeFile(conf.path, image, function(err) {
+                  if (err) return reject(err);
+                  resolve(conf.path, image);
+                });
+              });
+              break;
+            case 'Buffer':
+            default:
+              return image;
+              break;
+          }
+        });
+      });
   }
 
   /**
