@@ -136,7 +136,7 @@ exports.getImageByText = function getImageByText(text, config) {
   const conf = Object.assign({
     color: '#333333',
     fontSize: '16',
-    fontWeigth: 'Normal',
+    fontWeight: 'Normal',
     width: 4000,
     height: 4000,
     marginLeft: 0,
@@ -157,7 +157,7 @@ exports.getImageByText = function getImageByText(text, config) {
 
   // 文字字体
   const font = {
-    family: pathResolve(`../fonts/SourceHanSerifCN-${conf.fontWeigth}.ttf`),
+    family: pathResolve(`../fonts/SourceHanSerifCN-${conf.fontWeight}.ttf`),
     size: +conf.fontSize
   };
 
