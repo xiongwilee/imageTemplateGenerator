@@ -14,13 +14,16 @@ const Template = require('./src/template');
  * @return {Promise}
  */
 module.exports = function imageTemplateGenerator(bg, tempConf, pupeepteerConfig, itemsConf, options) {
-  if (!bg || !tempConf) return Promise.reject('Illegal Arguments!');
+  // 如果不配置bg, 则认为不需要通过既定的语法生成图片，而直接通过puppeteer生成
+  if (!bg || !tempConf) {
+    return Template.getObject(bg, tempConf, pupeepteerConfig);
+  }
 
-  const Temp = Template(bg, tempConf, pupeepteerConfig);
+  const Temp = Template.genFromBg(bg, tempConf, pupeepteerConfig);
 
   if (!itemsConf) return Temp;
 
   return Temp.then((err, temp) => {
     return temp.gen(itemsConf, options);
   });
-}
+};

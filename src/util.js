@@ -2,10 +2,8 @@
  * @author xiongwilee
  */
 
-const path = require('path');
 const fs = require('fs');
 
-const puppeteer = require('puppeteer');
 const request = require('request');
 
 /**
@@ -18,10 +16,10 @@ exports.getImgBase64 = function(url) {
   if (!url) return Promise.resolve();
 
   if (Buffer.isBuffer(url)) {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       process.nextTick(function() {
-        resolve()
-      })
+        resolve();
+      });
     });
   }
 
@@ -52,7 +50,7 @@ exports.getImgBase64 = function(url) {
         const base64Head = exports.getBase64Head(contentType);
 
         resolve(base64Head + body);
-      })
+      });
     });
   } else {
     // 否则如果是图片，直接通过 fs 读取，并返回
@@ -68,7 +66,7 @@ exports.getImgBase64 = function(url) {
     });
   }
 
-}
+};
 
 /**
  * 拼接base64的头
@@ -87,16 +85,16 @@ exports.getBase64Head = function(path) {
   }
 
   return `data:${contentType};base64,`;
-}
+};
 
 exports.isBase64 = function(str) {
   return /^data:i/.test(str);
-}
+};
 
 exports.isUrl = function(str) {
-  return /^(https\:\/\/|http\:\/\/)/.test(str);
-}
+  return /^(https:\/\/|http:\/\/)/.test(str);
+};
 
 exports.isPath = function(str) {
-  return /^(\/|\.\/|\.\.\/|[a-zA-Z0-9\-\_]+\/)/.test(str);
-}
+  return /^(\/|\.\/|\.\.\/|[a-zA-Z0-9\-_]+\/)/.test(str);
+};

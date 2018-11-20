@@ -1,9 +1,6 @@
 /**
  * @author xiongwilee
  */
-const Stream = require('stream');
-const fs = require('fs');
-const path = require('path');
 
 const Util = require('./util');
 
@@ -52,7 +49,7 @@ class Template {
       .then((dataList) => {
         const html = this.getHtmlByTemp(dataList);
         // console.log(html, '~~~~~~~~3');
-        return this.getPageImg(html, options)
+        return this.getPageImg(html, options);
       })
       .then((data) => {
         if (!Buffer.isBuffer(data)) throw new Error('Get screenshot Error!');
@@ -67,36 +64,36 @@ class Template {
       height: 1334,
       deviceScaleFactor: 1
     }, options);
-
+    
     return this.getPage((page) => {
-        return Promise.resolve()
-          // 设置视口宽高
-          .then(() => {
-            return page.setViewport(config);
-          })
-          .then(() => {
-            if (Util.isUrl(url)) {
-              return page.goto(url, Object.assign({}, gotoOptions));
-            } else {
-              return page.setContent(url, gotoOptions);
-            }
-          })
-          .then(() => {
-            return page.screenshot(Object.assign({
-              path: options.path,
-              // 默认生成png图片
-              type: 'png',
-              // 是否截全屏
-              fullPage: true,
-              // 图片质量:  options.quality is unsupported for the png screenshots , 先注释
-              // quality: 100
-            }, shotOptions)).then((data) => {
-              return data;
-            });
-          })
-          .then((data) => {
+      return Promise.resolve()
+        // 设置视口宽高
+        .then(() => {
+          return page.setViewport(config);
+        })
+        .then(() => {
+          if (Util.isUrl(url)) {
+            return page.goto(url, Object.assign({}, gotoOptions));
+          } else {
+            return page.setContent(url, gotoOptions);
+          }
+        })
+        .then(() => {
+          return page.screenshot(Object.assign({
+            path: config.path,
+            // 默认生成png图片
+            type: 'png',
+            // 是否截全屏
+            fullPage: true,
+            // 图片质量:  options.quality is unsupported for the png screenshots , 先注释
+            // quality: 100
+          }, shotOptions)).then((data) => {
             return data;
           });
+        })
+        .then((data) => {
+          return data;
+        });
       })
       .then((data) => {
         return data;
@@ -117,7 +114,7 @@ class Template {
       // 获取宽高
       const curItemSize = curItem.size.split(',') || [];
       // 获取位置
-      const curItemPosi = curItem.position.match(/([\+\-]\d+)/g) || [];
+      const curItemPosi = curItem.position.match(/([+-]\d+)/g) || [];
 
       const style = Object.assign({
         position: 'absolute',
@@ -126,7 +123,7 @@ class Template {
         left: `${curItemPosi[0]}px`,
         top: `${curItemPosi[1]}px`,
 
-        backgroundImage: !!item.img ? `url(${item.img})` : 'none',
+        backgroundImage: item.img ? `url(${item.img})` : 'none',
         backgroundSize: 'cover',
 
         fontSize: '16px',
@@ -160,9 +157,9 @@ class Template {
    * @return {String}       [description]
    */
   stringifyStyle(style) {
-    return Object.keys(style).reduce((accu, key, index) => {
+    return Object.keys(style).reduce((accu, key) => {
       let styleKey = key.replace(/([A-Z])/g, letter => `-${letter.toLowerCase()}`);
-      let styleVal = style[key].replace(/\"/g, '');
+      let styleVal = style[key].replace(/"/g, '');
 
       return `${accu}${styleKey}:${styleVal};`;
     }, '');
@@ -185,16 +182,26 @@ class Template {
             return browser.close()
               .then(() => {
                 return data;
-              })
-          })
+              });
+          });
       });
   }
 }
 
-module.exports = function(bg, tempConf, puppeteerConfig) {
+/**
+ * 直接输出Template实例化对象
+ */
+exports.getObject = function(bgBase64, tempConf, puppeteerConfig) {
+  return new Template(bgBase64, tempConf, puppeteerConfig);
+};
+
+/**
+ * 通过背景图片生成图片
+ */
+exports.genFromBg = function(bg, tempConf, puppeteerConfig) {
   // 先获取背景图片
   return Util.getImgBase64(bg)
     .then((bgBase64) => {
       return new Template(bgBase64, tempConf, puppeteerConfig);
     });
-}
+};
