@@ -11,7 +11,9 @@ class Template {
     this.bgBase64 = bgBase64;
 
     this.puppeteerConfig = Object.assign({
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
+      launch : {
+        args: ['--no-sandbox', '--disable-setuid-sandbox']
+      }
     }, puppeteerConfig);
 
     if (tempConf) {
