@@ -9,7 +9,11 @@ const puppeteer = require('puppeteer');
 class Template {
   constructor(bgBase64, tempConf, puppeteerConfig = {}) {
     this.bgBase64 = bgBase64;
-    this.puppeteerConfig = puppeteerConfig;
+
+    this.puppeteerConfig = Object.assign({
+      args: ['--no-sandbox', '--disable-setuid-sandbox']
+    }, puppeteerConfig);
+
     if (tempConf) {
       this.tempConf = tempConf;
       this.temps = Object.keys(tempConf);
@@ -60,11 +64,12 @@ class Template {
 
   getPageImg(url, options, gotoOptions, shotOptions) {
     const config = Object.assign({
-      width: 750,
-      height: 1334,
-      deviceScaleFactor: 1
+      width: 375,
+      height: 667,
+      deviceScaleFactor: 2,
+      isMobile: true
     }, options);
-    
+
     return this.getPage((page) => {
       return Promise.resolve()
         // 设置视口宽高
