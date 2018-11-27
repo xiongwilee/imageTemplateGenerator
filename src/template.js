@@ -85,6 +85,25 @@ class Template {
             return page.setContent(url, gotoOptions);
           }
         })
+        .then(()=>{
+          // 判断是否执行 waitForSelector 方法
+          const { waitForSelector = {} } = config;
+          for(let key in waitForSelector) {
+            if (key) {
+              const value = waitForSelector[key];
+              const params = {
+                visible: value === 'visible',
+                hidden: value === 'hidden',
+                timeout: 10000
+              };
+              return page.waitForSelector(key, params);
+            }
+          }
+          Promise.resolve();
+        }).
+        catch(()=>{
+          Promise.resolve();
+        })
         .then(() => {
           return page.screenshot(Object.assign({
             path: config.path,
